@@ -63,76 +63,124 @@ Dashboard completo para visualizar y analizar tus datos de salud del Helio Ring 
 - **PostgreSQL 16**: Base de datos
 - Listo para **EasyPanel** deployment
 
-## Instalación
+## 🚀 Instalación Rápida
 
-### Requisitos Previos
-- Docker y Docker Compose instalados
-- Cuenta en Zepp/Huami (email y contraseña)
-- API Key de OpenAI
+### 📦 Método Recomendado: Script Automático
 
-### 1. Clonar el Repositorio
+La forma más rápida de instalar en tu servidor:
+
+```bash
+# 1. Clonar el repositorio
+git clone <tu-repo>
+cd zepp-health-ai
+
+# 2. Ejecutar script de instalación
+./quick-start.sh
+```
+
+El script te guiará paso a paso y configurará todo automáticamente. ✨
+
+---
+
+### ☁️ Instalación en EasyPanel / Coolify
+
+**Instalación en 2 minutos** con solo copiar y pegar:
+
+1. 📖 **Lee la guía**: [`EASYPANEL.md`](./EASYPANEL.md)
+2. 🔗 **Conecta tu repositorio Git** en EasyPanel
+3. ⚙️ **Copia las variables de entorno** (ver abajo)
+4. 🚀 **Deploy** - ¡Listo!
+
+#### Variables de Entorno Mínimas (para EasyPanel):
+
+```env
+# ⚠️ OBLIGATORIAS - Debes cambiarlas:
+POSTGRES_PASSWORD=tu_password_super_seguro
+JWT_SECRET=secret_aleatorio_largo_y_seguro
+OPENAI_API_KEY=sk-tu-api-key-de-openai
+
+# ✅ Opcionales (valores por defecto):
+POSTGRES_USER=zepp_user
+POSTGRES_DB=zepp_health
+NODE_ENV=production
+OPENAI_MODEL=gpt-4-turbo-preview
+```
+
+📚 **Guía completa**: Ver [`INSTALL.md`](./INSTALL.md) para instrucciones detalladas.
+
+---
+
+### 🐳 Instalación Manual con Docker Compose
+
+#### Requisitos Previos
+- ✅ Docker y Docker Compose instalados
+- ✅ Cuenta en Zepp/Huami (email y contraseña)
+- ✅ API Key de OpenAI ([Consíguela aquí](https://platform.openai.com/api-keys))
+
+#### Pasos:
+
+**1. Clonar el repositorio**
 
 ```bash
 git clone <tu-repo>
 cd zepp-health-ai
 ```
 
-### 2. Configurar Variables de Entorno
-
-Copia el archivo de ejemplo y edita con tus credenciales:
+**2. Configurar variables de entorno**
 
 ```bash
+# Copiar archivo de ejemplo
 cp .env.example .env
+
+# Editar con tu editor favorito
+nano .env  # o vim .env
 ```
 
-Edita `.env` y configura:
+**Configura estas 3 variables OBLIGATORIAS** en el archivo `.env`:
 
 ```env
-# PostgreSQL
-POSTGRES_USER=zepp_user
-POSTGRES_PASSWORD=tu_password_seguro
-POSTGRES_DB=zepp_health
-DATABASE_URL=postgresql://zepp_user:tu_password_seguro@postgres:5432/zepp_health
-
-# Backend
-JWT_SECRET=tu_secret_jwt_muy_seguro_cambialo
-SYNC_INTERVAL_MINUTES=60
-
-# OpenAI - IMPORTANTE: Coloca tu API Key aquí
+POSTGRES_PASSWORD=una_password_segura_aqui
+JWT_SECRET=un_secret_aleatorio_muy_largo
 OPENAI_API_KEY=sk-tu-api-key-de-openai-aqui
-OPENAI_MODEL=gpt-4-turbo-preview
-
-# URLs
-FRONTEND_URL=http://localhost:3000
 ```
 
-### 3. Iniciar con Docker
+El archivo `.env.example` tiene comentarios detallados para cada variable.
+
+**3. Iniciar con Docker**
 
 ```bash
 # Construir e iniciar todos los servicios
 docker-compose up -d
 
-# Ver logs
+# Ver logs en tiempo real
 docker-compose logs -f
 
 # Detener servicios
 docker-compose down
 ```
 
-### 4. Acceder a la Aplicación
+**4. Acceder a la aplicación**
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-- **PostgreSQL**: localhost:5432
+- 🌐 **Frontend**: http://localhost:3000
+- 🔌 **Backend API**: http://localhost:3001
+- 🗄️ **PostgreSQL**: localhost:5432
 
-### 5. Primer Uso
+**5. Primer uso**
 
-1. Abre http://localhost:3000
-2. Haz clic en "Regístrate"
+1. Abre http://localhost:3000 en tu navegador
+2. Haz clic en **"Regístrate"**
 3. Ingresa:
-   - Tu email y contraseña (para esta app)
-   - Tu email y contraseña de Zepp
-4. El sistema se autenticará con Zepp y comenzará la primera sincronización
+   - Email y contraseña (para esta app - crea uno nuevo)
+   - Email y contraseña de tu cuenta Zepp Life
+4. ¡La sincronización comenzará automáticamente!
+
+---
+
+### 📚 Documentación de Instalación
+
+- 📖 **Guía completa**: [`INSTALL.md`](./INSTALL.md) - Instrucciones detalladas para todos los métodos
+- ☁️ **EasyPanel/Coolify**: [`EASYPANEL.md`](./EASYPANEL.md) - Instalación rápida en la nube
+- 🐛 **Problemas**: Ver sección de troubleshooting en `INSTALL.md`
 
 ## Uso
 
@@ -284,14 +332,38 @@ Instala PostgreSQL localmente y ejecuta:
 psql -U postgres -f backend/src/db/schema.sql
 ```
 
-## Deployment en EasyPanel
+## Deployment en EasyPanel / Coolify / Portainer
 
-1. Sube el proyecto a un repositorio Git
-2. En EasyPanel, crea una nueva aplicación
-3. Selecciona "Docker Compose"
-4. Apunta al `docker-compose.yml`
-5. Configura las variables de entorno
-6. Deploy
+### EasyPanel y Coolify
+
+📖 **Guía detallada**: Ver [`EASYPANEL.md`](./EASYPANEL.md)
+
+**Resumen rápido:**
+
+1. 🔗 Conecta tu repositorio Git en el panel
+2. ⚙️ EasyPanel/Coolify detectará automáticamente el `docker-compose.yml`
+3. 📝 Configura las 3 variables obligatorias:
+   - `POSTGRES_PASSWORD`
+   - `JWT_SECRET`
+   - `OPENAI_API_KEY`
+4. 🚀 Deploy y listo
+
+### Portainer
+
+1. Sube el `docker-compose.yml` a Portainer
+2. Configura las variables de entorno
+3. Deploy stack
+
+### Otros servicios
+
+El proyecto usa **Docker Compose estándar**, compatible con:
+- ✅ EasyPanel
+- ✅ Coolify
+- ✅ Portainer
+- ✅ Railway
+- ✅ Render
+- ✅ DigitalOcean App Platform
+- ✅ Cualquier servidor con Docker
 
 ## Seguridad
 

@@ -1,10 +1,22 @@
+# ============================================
+# ZEPP HEALTH AI - DOCKER COMPOSE
+# ============================================
+# Instrucciones:
+# 1. Copia .env.example a .env
+# 2. Edita .env con tus credenciales (especialmente OPENAI_API_KEY)
+# 3. Ejecuta: docker-compose up -d
+# ============================================
+
 version: '3.8'
 
 services:
+  # ============================================
+  # BASE DE DATOS POSTGRESQL
+  # ============================================
   postgres:
     image: postgres:16-alpine
     container_name: zepp-postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-zepp_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -29,12 +41,15 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # ============================================
+  # BACKEND API (Node.js + Express)
+  # ============================================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: zepp-backend
-    restart: always
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-zepp_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-zepp_health}
       NODE_ENV: ${NODE_ENV:-production}
@@ -70,12 +85,15 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # ============================================
+  # FRONTEND (Next.js)
+  # ============================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: zepp-frontend
-    restart: always
+    restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
       NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
