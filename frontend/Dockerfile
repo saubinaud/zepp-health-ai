@@ -14,6 +14,10 @@ RUN mkdir -p public
 RUN npm run build
 
 FROM node:20-alpine AS runner
+
+# Install wget for healthchecks
+RUN apk add --no-cache wget
+
 WORKDIR /app
 
 ENV NODE_ENV production
