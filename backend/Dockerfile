@@ -2,15 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies
+# Install ALL dependencies (including dev for build)
 COPY package*.json ./
-RUN npm install --production && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
 RUN npm run build
+
+# Remove dev dependencies after build to reduce image size
+RUN npm prune --production
 
 # Expose port
 EXPOSE 3001
