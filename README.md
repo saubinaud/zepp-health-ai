@@ -84,12 +84,15 @@ El script te guiará paso a paso y configurará todo automáticamente. ✨
 
 ### ☁️ Instalación en EasyPanel / Coolify
 
-**Instalación en 2 minutos** con solo copiar y pegar:
+**Instalación en 5 minutos - Solo 4 clics:**
 
-1. 📖 **Lee la guía**: [`EASYPANEL.md`](./EASYPANEL.md)
-2. 🔗 **Conecta tu repositorio Git** en EasyPanel
-3. ⚙️ **Copia las variables de entorno** (ver abajo)
-4. 🚀 **Deploy** - ¡Listo!
+1. 📖 **Lee la guía súper simple**: [`EASYPANEL-FACIL.md`](./EASYPANEL-FACIL.md) ⭐ **RECOMENDADO**
+2. 🍴 **Fork este repositorio** en GitHub (1 clic)
+3. 🔗 **Conecta el repo** en EasyPanel (1 clic)
+4. ⚙️ **Pega 3 variables de entorno** (copy/paste)
+5. 🚀 **Deploy** (1 clic) - ¡Listo!
+
+**No necesitas saber Git ni programación** - Solo hacer clic y copiar/pegar.
 
 #### Variables de Entorno Mínimas (para EasyPanel):
 
