@@ -138,9 +138,6 @@ export interface HealthContext {
 }
 
 // Express request extension
-export interface AuthRequest extends Express.Request {
-  user?: {
-    id: number;
-    email: string;
-  };
-}
+import { Request } from 'express';
+export type AuthRequest = Request;
+
