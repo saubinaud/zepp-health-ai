@@ -11,6 +11,12 @@ COPY . .
 # Create public directory if it doesn't exist
 RUN mkdir -p public
 
+# IMPORTANTE: Pasar variables de entorno al build de Next.js
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
 RUN npm run build
 
 FROM node:20-alpine AS runner
