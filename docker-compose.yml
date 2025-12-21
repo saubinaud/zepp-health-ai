@@ -1,13 +1,6 @@
 # ============================================
 # ZEPP HEALTH AI - DOCKER COMPOSE
 # ============================================
-# Instrucciones:
-# 1. Copia .env.example a .env
-# 2. Edita .env con tus credenciales (especialmente OPENAI_API_KEY)
-# 3. Ejecuta: docker-compose up -d
-# ============================================
-
-version: '3.8'
 
 services:
   # ============================================
@@ -25,6 +18,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql
     ports:
+      # Mapea puerto externo (env) : puerto interno (fijo 5432)
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
       - zepp-network
@@ -49,9 +43,11 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
+      # Conexión a la DB interna de Docker (usa nombre de servicio 'postgres')
       DATABASE_URL: postgresql://${POSTGRES_USER:-zepp_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-zepp_health}
       NODE_ENV: ${NODE_ENV:-production}
-      PORT: ${PORT:-3001}
+      # Puerto interno donde escucha Node.js
+      PORT: 3334
       JWT_SECRET: ${JWT_SECRET}
       SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-60}
       RATE_LIMIT_REQUESTS_PER_SECOND: ${RATE_LIMIT_REQUESTS_PER_SECOND:-1}
@@ -63,9 +59,10 @@ services:
       NOTIFICATION_HR_LOW: ${NOTIFICATION_HR_LOW:-45}
       NOTIFICATION_SPO2_LOW: ${NOTIFICATION_SPO2_LOW:-92}
       NOTIFICATION_STRESS_HIGH: ${NOTIFICATION_STRESS_HIGH:-80}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3333}
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      # Mapea puerto externo (env 3334) : puerto interno (fijo 3334)
+      - "${BACKEND_PORT:-3334}:3334"
     depends_on:
       postgres:
         condition: service_healthy
@@ -95,11 +92,16 @@ services:
         NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
-      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
+      # Apunta al backend usando el nombre del servicio docker si es SSR, o URL pública si es cliente
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3334}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3334}
       NODE_ENV: production
+      # Next.js usa PORT 3000 por defecto internamente
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      # AQUÍ ESTABA EL ERROR:
+      # Mapeamos el puerto externo 3333 (o variable) al interno 3000.
+      # Así no choca con tu puerto 3000 ocupado en el host.
+      - "${FRONTEND_PORT:-3333}:3000"
     depends_on:
       backend:
         condition: service_healthy
