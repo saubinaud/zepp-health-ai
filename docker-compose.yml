@@ -108,11 +108,12 @@ services:
     networks:
       - zepp-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 0"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+        # Agregamos "-h 127.0.0.1" para forzar conexión TCP local y evitar errores de socket
+        test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zepp_user} -d ${POSTGRES_DB:-zepp_health} -h 127.0.0.1"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 10s
     logging:
       driver: "json-file"
       options:
