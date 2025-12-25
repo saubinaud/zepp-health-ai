@@ -1,10 +1,14 @@
 # ============================================
 # ZEPP HEALTH AI - DOCKER COMPOSE
 # ============================================
+# Configuración optimizada para producción
+# ============================================
+
+version: '3.8'
 
 services:
   # ============================================
-  # BASE DE DATOS POSTGRESQL
+  # POSTGRESQL DATABASE
   # ============================================
   postgres:
     image: postgres:16-alpine
@@ -18,12 +22,11 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql
     ports:
-      # Mapea puerto externo (env) : puerto interno (fijo 5432)
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
       - zepp-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zepp_user} -d ${POSTGRES_DB:-zepp_health}"]
+      test: ["CMD-SHELL", "pg_isready -U zepp_user -d zepp_health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +38,7 @@ services:
         max-file: "3"
 
   # ============================================
-  # BACKEND API (Node.js + Express)
+  # BACKEND API
   # ============================================
   backend:
     build:
@@ -43,10 +46,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      # Conexión a la DB interna de Docker (usa nombre de servicio 'postgres')
       DATABASE_URL: postgresql://${POSTGRES_USER:-zepp_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-zepp_health}
-      NODE_ENV: ${NODE_ENV:-production}
-      # Puerto interno donde escucha Node.js
+      NODE_ENV: production
       PORT: 3334
       JWT_SECRET: ${JWT_SECRET}
       SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-60}
@@ -61,7 +62,6 @@ services:
       NOTIFICATION_STRESS_HIGH: ${NOTIFICATION_STRESS_HIGH:-80}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3333}
     ports:
-      # Mapea puerto externo (env 3334) : puerto interno (fijo 3334)
       - "${BACKEND_PORT:-3334}:3334"
     depends_on:
       postgres:
@@ -69,7 +69,7 @@ services:
     networks:
       - zepp-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3001}/health || exit 0"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:3334/health || exit 0"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -81,26 +81,21 @@ services:
         max-file: "3"
 
   # ============================================
-  # FRONTEND (Next.js)
+  # FRONTEND
   # ============================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
-        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3334}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3334}
     restart: unless-stopped
     environment:
-      # Apunta al backend usando el nombre del servicio docker si es SSR, o URL pública si es cliente
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3334}
       NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3334}
       NODE_ENV: production
-      # Next.js usa PORT 3000 por defecto internamente
     ports:
-      # AQUÍ ESTABA EL ERROR:
-      # Mapeamos el puerto externo 3333 (o variable) al interno 3000.
-      # Así no choca con tu puerto 3000 ocupado en el host.
       - "${FRONTEND_PORT:-3333}:3000"
     depends_on:
       backend:
