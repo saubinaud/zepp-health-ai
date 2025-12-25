@@ -2,22 +2,30 @@
 
 ## 🚨 Problema Principal
 
-Cloudflare **solo permite ciertos puertos** cuando el proxy está activado (nube naranja 🟠):
+El error era intentar usar puerto 80 directamente, pero **EasyPanel ya tiene un reverse proxy en ese puerto**.
 
-- **HTTP**: 80, 8080, 8880, 2052, 2082, 2086, 2095
-- **HTTPS**: 443, 2053, 2083, 2087, 2096, 8443
+## ✅ Arquitectura Correcta
 
-Los puertos 3333 y 3334 **NO están permitidos** → Error de conexión ❌
-
-## ✅ Solución: Usar Puertos Compatibles
+```
+Internet
+  ↓
+Cloudflare (443)
+  ↓
+EasyPanel Reverse Proxy (80/443)
+  ↓
+  ├─→ zepp.nodumstudio.com → Frontend (8081)
+  └─→ api.zepp.nodumstudio.com → Backend (8080)
+```
 
 ### Configuración de Puertos
 
-| Servicio | Puerto Interno | Puerto Externo | Cloudflare |
-|----------|---------------|----------------|------------|
-| Frontend | 3000 | **80** | ✅ Compatible |
-| Backend | 8080 | **8080** | ✅ Compatible |
-| PostgreSQL | 5432 | 5432 | (No expuesto) |
+| Servicio | Puerto Interno Docker | Puerto Expuesto | Dominio |
+|----------|---------------------|-----------------|---------|
+| Frontend | 3000 | **8081** | zepp.nodumstudio.com |
+| Backend | 8080 | **8080** | api.zepp.nodumstudio.com |
+| PostgreSQL | 5432 | (no expuesto) | - |
+
+**IMPORTANTE**: EasyPanel maneja el routing de 80/443 → 8080/8081
 
 ---
 
@@ -58,8 +66,8 @@ TTL: Auto
 **IMPORTANTE**: Asegúrate de que tu archivo `.env` tenga:
 
 ```env
-# Puertos compatibles con Cloudflare
-FRONTEND_PORT=80
+# Puertos internos (EasyPanel reverse proxy maneja 80/443)
+FRONTEND_PORT=8081
 BACKEND_PORT=8080
 
 # URLs con HTTPS y WSS (Cloudflare maneja SSL)
@@ -77,13 +85,13 @@ OPENAI_API_KEY=[TU_OPENAI_API_KEY]
 
 **Frontend:**
 - Dominio: `zepp.nodumstudio.com`
-- Puerto: **80**
-- HTTPS: Déjalo que EasyPanel lo maneje
+- Puerto: **8081** (interno - EasyPanel maneja el routing)
+- HTTPS: Activado (EasyPanel reverse proxy lo maneja)
 
 **Backend:**
 - Dominio: `api.zepp.nodumstudio.com`
-- Puerto: **8080**
-- HTTPS: Déjalo que EasyPanel lo maneje
+- Puerto: **8080** (interno)
+- HTTPS: Activado (EasyPanel reverse proxy lo maneja)
 
 #### C. Rebuild de Contenedores
 
@@ -111,7 +119,7 @@ dig api.zepp.nodumstudio.com
 # Verifica que los contenedores estén escuchando
 docker ps
 # Deberías ver:
-# - frontend: 0.0.0.0:80->3000/tcp
+# - frontend: 0.0.0.0:8081->3000/tcp
 # - backend: 0.0.0.0:8080->8080/tcp
 ```
 
@@ -134,9 +142,18 @@ docker compose logs backend -f
 
 **Causas comunes:**
 1. ✅ Cloudflare SSL/TLS en "Flexible" → Cambiar a "Full"
-2. ✅ Puertos incorrectos en EasyPanel
+2. ✅ Puertos incorrectos en EasyPanel (usar 8081 y 8080)
 3. ✅ Variables NEXT_PUBLIC_* no actualizadas (falta rebuild)
-4. ✅ Firewall bloqueando puertos 80/8080
+4. ✅ Firewall bloqueando puertos 8080/8081
+
+### Error: Port 80 already allocated
+
+**Causa:** Intentando usar puerto 80 directamente
+
+**Solución:**
+- NO uses puerto 80 en docker-compose
+- EasyPanel tiene su reverse proxy en puerto 80
+- Usa puertos altos como 8080, 8081, etc.
 
 **Solución:**
 ```bash
@@ -175,11 +192,11 @@ docker compose up -d
 - [ ] DNS en Cloudflare apuntando a tu VPS
 - [ ] Proxy activado (🟠) en ambos dominios
 - [ ] SSL/TLS en "Full" o "Full (strict)"
-- [ ] Archivo .env actualizado con puertos 80 y 8080
+- [ ] Archivo .env actualizado con puertos 8081 y 8080
 - [ ] Variables NEXT_PUBLIC_* con https:// y wss://
 - [ ] Secrets configurados (POSTGRES_PASSWORD, JWT_SECRET, OPENAI_API_KEY)
 - [ ] Rebuild completo de contenedores hecho
-- [ ] Puertos 80 y 8080 correctos en EasyPanel
+- [ ] Dominios en EasyPanel apuntando a puertos 8081 y 8080
 - [ ] Logs sin errores
 
 ---
