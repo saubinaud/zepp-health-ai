@@ -21,15 +21,16 @@ export class ZeppClient {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'com.xiaomi.hm.health/6.3.5 (iPhone; iOS 14.6; Scale/2.00)',
       },
     });
   }
 
   /**
-   * Generate MD5 hash of email for device_id
+   * Generate device ID (random to avoid blocking specific static ID)
    */
   private generateDeviceId(email: string): string {
-    return crypto.createHash('md5').update(email).digest('hex');
+    return crypto.createHash('md5').update(email + Date.now().toString()).digest('hex');
   }
 
   /**
@@ -79,7 +80,7 @@ export class ZeppClient {
         // Actually, the login endpoint is strictly `account.huami.com`.
         // The *data* endpoint is what changes.
         // So we need to authenticate first, THEN see which data endpoint works.
-        
+
         // Let's assume the passed `apiBaseUrl` is for DATA.
         // We will test data endpoints after login.
         return region;
@@ -163,7 +164,7 @@ export class ZeppClient {
 
       // Step 3: Probe for correct data region if not forced
       if (!process.env.ZEPP_API_BASE_URL) {
-         await this.findWorkingRegion();
+        await this.findWorkingRegion();
       }
 
       return {
@@ -180,28 +181,28 @@ export class ZeppClient {
    * Find working region by trying to fetch profile/data
    */
   private async findWorkingRegion() {
-      console.log('Probing for correct API region...');
-      for (const region of API_REGIONS) {
-          try {
-              // Try a lightweight simple request
-              await this.axiosInstance.get(
-                  `https://${region}/v1/sport/run/history.json`, // Using history as a probe
-                  {
-                      headers: this.getAuthHeaders(),
-                      params: { size: 1 } // Minimal data
-                  }
-              );
-              console.log(`Region found: ${region}`);
-              this.apiBaseUrl = region;
-              return;
-          } catch (error: any) {
-              // If 401/403 maybe our token is bad, but 404 or connection error means wrong region
-              // actually 404 could mean wrong region too.
-              // We just continue to next region.
-              console.log(`Region ${region} failed.`);
+    console.log('Probing for correct API region...');
+    for (const region of API_REGIONS) {
+      try {
+        // Try a lightweight simple request
+        await this.axiosInstance.get(
+          `https://${region}/v1/sport/run/history.json`, // Using history as a probe
+          {
+            headers: this.getAuthHeaders(),
+            params: { size: 1 } // Minimal data
           }
+        );
+        console.log(`Region found: ${region}`);
+        this.apiBaseUrl = region;
+        return;
+      } catch (error: any) {
+        // If 401/403 maybe our token is bad, but 404 or connection error means wrong region
+        // actually 404 could mean wrong region too.
+        // We just continue to next region.
+        console.log(`Region ${region} failed.`);
       }
-      console.warn('Could not automatically determine region, defaulting to ' + this.apiBaseUrl);
+    }
+    console.warn('Could not automatically determine region, defaulting to ' + this.apiBaseUrl);
   }
 
   /**
@@ -232,14 +233,14 @@ export class ZeppClient {
    */
   async getBandData(fromDate: string, toDate: string, queryType: 'summary' | 'detail' = 'summary') {
     return this.makeRequest({
-        url: `https://${this.apiBaseUrl}/v1/data/band_data.json`,
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-        params: {
-            query_type: queryType,
-            from_date: fromDate,
-            to_date: toDate,
-        },
+      url: `https://${this.apiBaseUrl}/v1/data/band_data.json`,
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+      params: {
+        query_type: queryType,
+        from_date: fromDate,
+        to_date: toDate,
+      },
     });
   }
 
@@ -248,9 +249,9 @@ export class ZeppClient {
    */
   async getWorkoutHistory() {
     return this.makeRequest({
-        url: `https://${this.apiBaseUrl}/v1/sport/run/history.json`,
-        method: 'GET',
-        headers: this.getAuthHeaders(),
+      url: `https://${this.apiBaseUrl}/v1/sport/run/history.json`,
+      method: 'GET',
+      headers: this.getAuthHeaders(),
     });
   }
 
@@ -259,13 +260,13 @@ export class ZeppClient {
    */
   async getWorkoutDetail(trackId: string, source: string) {
     return this.makeRequest({
-        url: `https://${this.apiBaseUrl}/v1/sport/run/detail.json`,
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-        params: {
-            trackid: trackId,
-            source: source,
-        },
+      url: `https://${this.apiBaseUrl}/v1/sport/run/detail.json`,
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+      params: {
+        trackid: trackId,
+        source: source,
+      },
     });
   }
 
@@ -278,13 +279,13 @@ export class ZeppClient {
     }
 
     return this.makeRequest({
-        url: `https://${this.apiBaseUrl}/users/${this.userId}/healthStress`,
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-        params: {
-            from: fromDate,
-            to: toDate,
-        },
+      url: `https://${this.apiBaseUrl}/users/${this.userId}/healthStress`,
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+      params: {
+        from: fromDate,
+        to: toDate,
+      },
     });
   }
 
@@ -297,13 +298,13 @@ export class ZeppClient {
     }
 
     return this.makeRequest({
-        url: `https://${this.apiBaseUrl}/users/${this.userId}/spo2`,
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-        params: {
-            from: fromDate,
-            to: toDate,
-        },
+      url: `https://${this.apiBaseUrl}/users/${this.userId}/spo2`,
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+      params: {
+        from: fromDate,
+        to: toDate,
+      },
     });
   }
 
@@ -316,13 +317,13 @@ export class ZeppClient {
     }
 
     return this.makeRequest({
-        url: `https://${this.apiBaseUrl}/users/${this.userId}/pai`,
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-        params: {
-            from: fromDate,
-            to: toDate,
-        },
+      url: `https://${this.apiBaseUrl}/users/${this.userId}/pai`,
+      method: 'GET',
+      headers: this.getAuthHeaders(),
+      params: {
+        from: fromDate,
+        to: toDate,
+      },
     });
   }
 }
