@@ -120,7 +120,7 @@ export class SyncService {
     fromDate: string,
     toDate: string
   ): Promise<number> {
-    const bandData = await this.zeppClient.getBandData(fromDate, toDate, 'summary');
+    const bandData = await this.zeppClient.getBandData(fromDate, toDate, 'summary') as any;
 
     if (!bandData || !bandData.data) {
       return 0;
@@ -199,7 +199,7 @@ export class SyncService {
     fromDate: string,
     toDate: string
   ): Promise<number> {
-    const bandData = await this.zeppClient.getBandData(fromDate, toDate, 'detail');
+    const bandData = await this.zeppClient.getBandData(fromDate, toDate, 'detail') as any;
 
     if (!bandData || !bandData.data) {
       return 0;
