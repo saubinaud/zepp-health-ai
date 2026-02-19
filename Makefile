@@ -4,6 +4,7 @@ setup:
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
 		echo "Created .env file. Please edit it with your configuration."; \
+		echo "NOTE: Default ports are Frontend: 8081, Backend: 8080."; \
 	else \
 		echo ".env file already exists."; \
 	fi
