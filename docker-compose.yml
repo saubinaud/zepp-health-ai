@@ -26,7 +26,7 @@ services:
     networks:
       - zepp-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zepp_user -d zepp_health || exit 0"]
+      test: [ "CMD-SHELL", "pg_isready -U zepp_user -d zepp_health || exit 0" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -61,6 +61,7 @@ services:
       NOTIFICATION_SPO2_LOW: ${NOTIFICATION_SPO2_LOW:-92}
       NOTIFICATION_STRESS_HIGH: ${NOTIFICATION_STRESS_HIGH:-80}
       FRONTEND_URL: ${FRONTEND_URL:-https://localhost}
+      ZEPP_API_BASE_URL: ${ZEPP_API_BASE_URL}
     ports:
       - "${BACKEND_PORT:-8080}:${BACKEND_PORT:-8080}"
     depends_on:
@@ -69,7 +70,7 @@ services:
     networks:
       - zepp-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:${BACKEND_PORT:-8080}/health || exit 0"]
+      test: [ "CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:${BACKEND_PORT:-8080}/health || exit 0" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -103,12 +104,12 @@ services:
     networks:
       - zepp-network
     healthcheck:
-        # Agregamos "-h 127.0.0.1" para forzar conexión TCP local y evitar errores de socket
-        test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zepp_user} -d ${POSTGRES_DB:-zepp_health} -h 127.0.0.1"]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-        start_period: 10s
+      # Agregamos "-h 127.0.0.1" para forzar conexión TCP local y evitar errores de socket
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zepp_user} -d ${POSTGRES_DB:-zepp_health} -h 127.0.0.1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
