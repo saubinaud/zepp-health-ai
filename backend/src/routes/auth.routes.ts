@@ -12,13 +12,13 @@ const authService = new AuthService();
  */
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, zeppEmail, zeppPassword } = req.body;
+    const { email, password, zeppEmail, zeppPassword, appToken, zeppUserId } = req.body;
 
     if (!email || !password || !zeppEmail || !zeppPassword) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const result = await authService.register(email, password, zeppEmail, zeppPassword);
+    const result = await authService.register(email, password, zeppEmail, zeppPassword, appToken, zeppUserId);
 
     res.status(201).json({
       message: 'User registered successfully',

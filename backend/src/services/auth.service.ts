@@ -13,7 +13,9 @@ export class AuthService {
     email: string,
     password: string,
     zeppEmail: string,
-    zeppPassword: string
+    zeppPassword: string,
+    providedAppToken?: string,
+    providedUserId?: string
   ): Promise<{ user: User; token: string }> {
     // Check if user already exists
     const existingUser = await query('SELECT id FROM users WHERE email = $1', [email]);
@@ -22,14 +24,16 @@ export class AuthService {
       throw new Error('User already exists');
     }
 
-    // Authenticate with Zepp to validate credentials
-    const zeppClient = new ZeppClient();
-    let zeppAuth;
+    // Authenticate with Zepp to validate credentials (unless token provided manually)
+    let zeppAuth = { appToken: providedAppToken, userId: providedUserId };
 
-    try {
-      zeppAuth = await zeppClient.authenticate(zeppEmail, zeppPassword);
-    } catch (error: any) {
-      throw new Error(`Failed to authenticate with Zepp: ${error.message}`);
+    if (!providedAppToken || !providedUserId) {
+      const zeppClient = new ZeppClient();
+      try {
+        zeppAuth = await zeppClient.authenticate(zeppEmail, zeppPassword);
+      } catch (error: any) {
+        throw new Error(`Failed to authenticate with Zepp: ${error.message}`);
+      }
     }
 
     // Hash user password
